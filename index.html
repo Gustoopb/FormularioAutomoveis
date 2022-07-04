@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>Carros Seguros</title>
+</head>
+
+<body>
+
+    <div style="text-align: center;">
+
+        <h1> Cadastro de Automóveis </h1>
+    </div>
+
+    <form id="formulario" onsubmit="salvaAtulizaFormulario();return false">
+
+        <fieldset>
+            <legend>Modelo do carro:</legend>
+            <label for="">nome:</label>
+            <input id="camponome" type="text" name="nome" placeholder="Insira nome do carro" required>
+            <br>
+            <label for="cor">Cor:</label>
+            <input id="campocor" type="text" name="cor" required>
+            <br>
+            <label for="fabricante">Fabricante:</label>
+            <input id="campofabricante" type="text" name="fabricante" required>
+            <br>
+            <label for="ano">Ano:</label>
+            <input id="campoano" type="text" name="ano" required>
+            <br>
+            <input type="reset" value="Limpar">
+            <button type="submit">Enviar</button>
+            <br>
+            <h1></h1>
+
+
+        </fieldset>
+
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome:</th>
+                <th>Cor:</th>
+                <th>Fabri:</th>
+                <th>Ano:</th>
+                <th>Alterar:</th>
+                <th>Excluir:</th>
+            </tr>
+        </thead>
+        <tbody id="bodyTabela">
+
+        </tbody>
+    </table>
+    <script>
+        async function salvaAtulizaFormulario() {
+            const dadosFormulario = new FormData(document.getElementById('formulario'));
+
+            const response = await fetch('/carros', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+                , body: JSON.stringify(Object.fromEntries(dadosFormulario))
+            })
+
+            const carros = await response.json();
+            alterarTabela(carros);
+            document.getElementById('formulario').reset();
+        }
+        async function alterarDados(index) {
+            console.log("alterei")
+            const response = await fetch('/alterarCarros', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+                , body: JSON.stringify({ i: index })
+            })
+            const carro = await response.json();
+            document.getElementById("camponome").value = carro.nome
+            document.getElementById("campocor").value = carro.cor
+            document.getElementById("campofabricante").value = carro.fabricante
+            document.getElementById("campoano").value = carro.ano
+
+        }
+        async function excluirDados(index) {
+            console.log("exclui")
+            const response = await fetch('/excluirCarros', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+                , body: JSON.stringify({ i: index })
+
+
+            })
+            const carros = await response.json();
+            alterarTabela(carros);
+
+        }
+        function alterarTabela(carros) {
+            carros = carros.sort(function (a, b) {
+                const nameA = a.nome.toUpperCase(); // ignore upper and lowercase
+                const nameB = b.nome.toUpperCase();
+                if (nameA < nameB)
+                    return -1;
+                else return 1;
+                return 0;
+            })
+            const bodyTabela = document.getElementById('bodyTabela')
+            bodyTabela.innerHTML = ''
+            const x = carros.length;
+            for (let i = 0; i < x; i++) {
+                const carro = carros[i];
+                const linha = bodyTabela.insertRow();
+                linha.insertCell().appendChild(document.createTextNode(carro.nome));
+                linha.insertCell().appendChild(document.createTextNode(carro.cor));
+                linha.insertCell().appendChild(document.createTextNode(carro.fabricante));
+                linha.insertCell().appendChild(document.createTextNode(carro.ano));
+
+
+                let btnalterar = document.createElement("button");
+                btnalterar.innerHTML = "alterar";
+                btnalterar.onclick = function () { alterarDados(i) };
+                linha.insertCell().appendChild(btnalterar);
+
+                let btnexcluir = document.createElement("button");
+                btnexcluir.innerHTML = "excluir";
+                btnexcluir.onclick = function () { excluirDados(i) };
+                linha.insertCell().appendChild(btnexcluir);
+            }
+
+        }
+    </script>
+
+</body>
+<style>
+    table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        width: 100%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+    table thead tr {
+        background-color: #009879;
+        color: #ffffff;
+        text-align: left;
+    }
+
+    table th,
+    table td {
+        padding: 12px 15px;
+    }
+
+    table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+
+    table tbody tr:hover {
+        color: #009879;
+    }
+</style>
+
+</html>
